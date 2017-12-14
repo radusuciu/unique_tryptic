@@ -57,9 +57,12 @@ class Protein:
         )
 
 
-class ProteinGroup:
-    def __init__(self, proteins=[]):
-        self.proteins = proteins
+class ProteinGroup(object):
+    def __init__(self, proteins=None):
+        if proteins:
+            self.proteins = proteins
+        else:
+            self.proteins = []
 
     def add(self, protein):
         self.proteins.append(protein)
@@ -80,6 +83,19 @@ class ProteinGroup:
                 unique_experimental = (x for x in unique_experimental if not any(x in s for s in other_full_sequences))
 
             unique[protein.name] = list(unique_experimental)
+
+        return unique
+
+    def get_unique_predicted(self):
+        unique = {}
+        for index, protein in enumerate(self.proteins):
+            other_proteins = self.proteins[:index] + self.proteins[(index + 1):]
+            other_sequences = (p.predicted_tryptic_sequences for p in other_proteins)
+            other_full_sequences = (p.full_sequence for p in other_proteins)
+
+            unique_predicted = protein.predicted_tryptic_sequences.difference(*other_sequences)
+            unique_predicted = (x for x in unique_predicted if not any(x in s for s in other_full_sequences))
+            unique[protein.name] = list(unique_predicted)
 
         return unique
 
